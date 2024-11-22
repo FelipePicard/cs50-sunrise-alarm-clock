@@ -50,22 +50,10 @@ int prev_m = 0;
 // time till alarm is fully lit (in seconds)
 int timeout = 1*60;
 
-int k = 0;
-
 // color values for red green and blue LEDs
-int rval;
-int gval;
-int bval;
-
-// initial values for each color
-int ri = 0;
-int gi = 0;
-int bi = 0;
-
-// threshold values for each color
-int rf = 255;
-int gf = 40;
-int bf = 20;
+int rval=0;
+int gval=0;
+int bval=0;
 
 char hour_set_text[3];
 char min_set_text[3];
@@ -100,6 +88,7 @@ void setup() {
     // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
   }
 
+  setColor(0, 0, 0);
   display.clearDisplay();
   Serial.begin(9600);
 }
@@ -146,6 +135,13 @@ void loop() {
 
   display.display();
   // Serial.println(enc_counter);
+  Serial.print("RGB Values: ");
+  Serial.print("R = ");
+  Serial.print(rval);
+  Serial.print(", G = ");
+  Serial.print(gval);
+  Serial.print(", B = ");
+  Serial.println(bval);
 }
 
 void set_alarm(long timer)
@@ -256,51 +252,53 @@ void sunrise()
 {
   h = hour_set;
   m = min_set;
-  // elapsed time since the sunrise routine started, in seconds
-  long elapsed_time = (now.hour() - h)*360 + (now.minute() - m)*60 + (now.second());
-  // elapsed time, in percent
-  int percentage = map(elapsed_time, 0, timeout, 0, 100);
   
-    if(elapsed_time < timeout){
-      k = 0;
-      rval = map(percentage, 0, 60, ri, rf);
-      gval = map(percentage, 25, 100, gi, gf);
-      bval = map(percentage, 10, 70, bi, bf);
+  // Elapsed time since the sunrise routine started, in seconds
+  long elapsed_time = (now.hour() - h) * 3600 + (now.minute() - m) * 60 + now.second();
+  
+  // Calculate elapsed time as a percentage
+  int percentage = map(elapsed_time, 0, timeout, 0, 100);
+  percentage = constrain(percentage, 0, 100); // Ensure percentage stays within bounds
 
-      if(rval<0){
-        rval=0;
-      }
-      if(gval<0){
-        gval=0;
-      }
-      if(bval<0){
-        bval=0;
-      }
-
-      if(rval>rf){
-        rval=rf;
-      }
-      if(gval>gf){
-        gval=gf;
-      }
-      if(bval>bf){
-        bval=bf;
-      }
-      digitalWrite(13, HIGH);
+  if (percentage <= 0 || percentage > 100) {
+    // Turn off LEDs if sunrise is not active
+    setColor(0, 0, 0);
+    return;
   }
 
-  else if (elapsed_time >= timeout && elapsed_time < (timeout + 1*60)){
-    rval = rf;
-    gval = gf;
-    bval = bf;
+  if (elapsed_time > timeout+(1*60))
+  {
+    setColor(0, 0, 0);
+    return;
   }
 
-  else if (elapsed_time >= (timeout + 1*60)){
-    //count = 1;
-    k = 1;
-    digitalWrite(13, LOW);
+  // Sunrise color keypoints (in RGB)
+  int colors[6][3] = {
+    {2, 1, 2},
+    {10, 4, 10},
+    {40, 2, 12},
+    {80, 0, 20},
+    {160, 24, 4},
+    {200, 60, 10}
+  };
+
+  int thresholds[6] = {0, 20, 40, 60, 80, 100}; // Define the percentage thresholds for each color
+
+  // Determine the current color based on the percentage
+  int current_color_index = 0;
+  for (int i = 0; i < 6; i++) {
+    if (percentage >= thresholds[i]) {
+      current_color_index = i;
+    } else {
+      break;
+    }
   }
-  //Serial.println("elapsed time", elapsed_time);
+
+  // Set the color corresponding to the current percentage range
+  rval = colors[current_color_index][0];
+  gval = colors[current_color_index][1];
+  bval = colors[current_color_index][2];
+
   setColor(rval, gval, bval);
 }
 
