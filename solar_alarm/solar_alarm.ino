@@ -164,18 +164,6 @@ void set_alarm(long timer)
   sprintf(hour_set_text, "%02d", hour_set);
   sprintf(min_set_text, "%02d", min_set);
 
-  if (hour_set > 24)
-  {
-    prev_h = 0;
-  }
-
-  if (min_set > 60)
-  {
-    prev_m = 0;
-  }
-
-  //Serial.println(min_set_text);
-
   display.setTextSize(1.5);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0, 15);
@@ -213,6 +201,20 @@ void set_alarm(long timer)
     prev_h = hour_set;
     prev_pos = position;
     tone(9, 600, 30);
+  }
+
+  if (hour_set > 24)
+  {
+    hour_set = 0;
+    prev_h = hour_set;
+    prev_pos = position;
+  }
+
+  if (min_set > 60)
+  {
+    min_set = 0;
+    prev_m = min_set;
+    prev_pos = position;
   }
 
   if (btnState == LOW && timer < 150)
@@ -257,10 +259,10 @@ void display_time()
     count++;
     delay(600);
     }
-    if(count%2 == 0){
+    if(count%2 != 0){
     setColor(255, 73, 12);
     }
-    if(count%2 != 0){
+    if(count%2 == 0){
     setColor(0,0,0);
     }
   }
