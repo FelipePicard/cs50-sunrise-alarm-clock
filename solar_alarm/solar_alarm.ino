@@ -11,10 +11,12 @@ Encoder myEnc(11, 12);
 #define r 3
 #define g 5
 #define b 6
+#define btn2 4
 
 bool btnState = HIGH;
 bool prev_btnState = HIGH;
 int correction = 0;
+bool btn2State = HIGH;
 
 RTC_DS1307 rtc;
 DateTime now;
@@ -27,6 +29,7 @@ int menu_counter = 0;
 int enc_counter = 0;
 long prev_pos = 0;
 unsigned long pt = 0;
+int count = 0;
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -60,6 +63,7 @@ char min_set_text[3];
 
 void setup() {
   pinMode(btnPin, INPUT_PULLUP);
+  pinMode(btn2, INPUT_PULLUP);
   pinMode(r, OUTPUT);
   pinMode(g, OUTPUT);
   pinMode(b, OUTPUT);
@@ -98,6 +102,7 @@ void loop() {
   unsigned long ct = millis();
 
   btnState = digitalRead(btnPin);
+  btn2State = digitalRead(btn2);
   
   long timer = ct - pt;
 
@@ -122,7 +127,6 @@ void loop() {
     prev_btnState = btnState;
   }
 
-
   if (menu_counter % 2 == 0)
   {
     display_time();
@@ -135,13 +139,15 @@ void loop() {
 
   display.display();
   // Serial.println(enc_counter);
-  Serial.print("RGB Values: ");
-  Serial.print("R = ");
-  Serial.print(rval);
-  Serial.print(", G = ");
-  Serial.print(gval);
-  Serial.print(", B = ");
-  Serial.println(bval);
+  // Serial.print("RGB Values: ");
+  // Serial.print("R = ");
+  // Serial.print(rval);
+  // Serial.print(", G = ");
+  // Serial.print(gval);
+  // Serial.print(", B = ");
+  // Serial.println(bval);
+  // Serial.print("COUNT = ");
+  // Serial.println(count);
 }
 
 void set_alarm(long timer)
@@ -244,6 +250,21 @@ void display_time()
   display.setCursor(0, 15);
   display.print(daysOfTheWeek[now.dayOfTheWeek()]);
 
+  if (hour_set != now.hour())
+  {
+    if (btn2State == LOW)
+    {
+    count++;
+    delay(600);
+    }
+    if(count%2 == 0){
+    setColor(255, 73, 12);
+    }
+    if(count%2 != 0){
+    setColor(0,0,0);
+    }
+  }
+
   sunrise();
 }
 
@@ -260,46 +281,53 @@ void sunrise()
   int percentage = map(elapsed_time, 0, timeout, 0, 100);
   percentage = constrain(percentage, 0, 100); // Ensure percentage stays within bounds
 
-  if (percentage <= 0 || percentage > 100) {
-    // Turn off LEDs if sunrise is not active
-    setColor(0, 0, 0);
-    return;
-  }
-
-  if (elapsed_time > timeout+(1*60))
+  if(h == now.hour())
   {
-    setColor(0, 0, 0);
-    return;
-  }
-
-  // Sunrise color keypoints (in RGB)
-  int colors[6][3] = {
-    {2, 1, 2},
-    {10, 4, 10},
-    {40, 2, 12},
-    {80, 0, 20},
-    {160, 24, 4},
-    {200, 60, 10}
-  };
-
-  int thresholds[6] = {0, 20, 40, 60, 80, 100}; // Define the percentage thresholds for each color
-
-  // Determine the current color based on the percentage
-  int current_color_index = 0;
-  for (int i = 0; i < 6; i++) {
-    if (percentage >= thresholds[i]) {
-      current_color_index = i;
-    } else {
-      break;
+    if (percentage <= 0 || percentage > 100) {
+      // Turn off LEDs if sunrise is not active
+      setColor(0, 0, 0);
+      return;
     }
+
+    if (elapsed_time > timeout+(1*60))
+    {
+      setColor(0, 0, 0);
+      return;
+    }
+
+    // Sunrise color keypoints (in RGB)
+    int colors[6][3] = {
+      {2, 1, 2},
+      {10, 4, 10},
+      {40, 2, 12},
+      {80, 0, 20},
+      {160, 24, 4},
+      {200, 60, 10}
+    };
+
+    // Determine which two colors to interpolate between
+    int num_colors = 6;
+    float step = 100.0 / (num_colors - 1); // Percent step per color transition
+    int index = percentage / step;        // Base color index
+    float t = (percentage - (index * step)) / step; // Interpolation factor (0.0 to 1.0)
+
+    if (index >= num_colors - 1) 
+    {
+      // Beyond the last color, use the final one
+      rval = colors[num_colors - 1][0];
+      gval = colors[num_colors - 1][1];
+      bval = colors[num_colors - 1][2];
+    } 
+    else 
+    {
+      // Interpolate between the current color and the next
+      rval = colors[index][0] + t * (colors[index + 1][0] - colors[index][0]);
+      gval = colors[index][1] + t * (colors[index + 1][1] - colors[index][1]);
+      bval = colors[index][2] + t * (colors[index + 1][2] - colors[index][2]);
+    }
+
+    setColor(rval, gval, bval);
   }
-
-  // Set the color corresponding to the current percentage range
-  rval = colors[current_color_index][0];
-  gval = colors[current_color_index][1];
-  bval = colors[current_color_index][2];
-
-  setColor(rval, gval, bval);
 }
 
 // set RGB LEDs color function
