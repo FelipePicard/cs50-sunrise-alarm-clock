@@ -1,5 +1,5 @@
 ## Solar alarm clock
-#### Video Demo:  <URL HERE>
+#### Video Demo: [WATCH HERE!!] <https://youtu.be/estjCFrhNYo>
 #### Description:
 An alarm clock that mimics the sunrise, featuring an OLED screen, a simple GUI for adjusting the alarm time and a script for cycling through different sunrise colors.
 
@@ -31,7 +31,7 @@ This project uses:
 - Interactive GUI to adjust alarm settings.  
 - Dual functionality: alarm lamp and regular lamp.
 
-  ---
+---
 
 ## Software
 The code starts including the main libraries for communicating with the sensors and other componnents connected to the microcontroller. After that, the pins and some of the variables are declared and given its initial values and the prototypes of the functions are also declared.
