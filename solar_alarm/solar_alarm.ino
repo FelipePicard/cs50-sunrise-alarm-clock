@@ -21,7 +21,9 @@ bool btn2State = HIGH;
 RTC_DS1307 rtc;
 DateTime now;
 
+void display_time();
 void set_alarm(long);
+void sunrise();
 void setColor(int, int, int);
 
 int timer_thresh = 800;
@@ -51,7 +53,7 @@ int prev_h = 0;
 int prev_m = 0;
 
 // time till alarm is fully lit (in seconds)
-int timeout = 1*60;
+int timeout = 20*60;
 
 // color values for red green and blue LEDs
 int rval=0;
@@ -291,7 +293,7 @@ void sunrise()
       return;
     }
 
-    if (elapsed_time > timeout+(1*60))
+    if (elapsed_time > timeout+(20*60))
     {
       setColor(0, 0, 0);
       return;
