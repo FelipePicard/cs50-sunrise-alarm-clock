@@ -1,5 +1,5 @@
 ## Solar alarm clock
-#### Video Demo: [WATCH HERE!!] <https://youtu.be/estjCFrhNYo>
+#### Video Demo: [Watch it here!!] (https://youtu.be/estjCFrhNYo)
 #### Description:
 An alarm clock that mimics the sunrise, featuring an OLED screen, a simple GUI for adjusting the alarm time and a script for cycling through different sunrise colors.
 
